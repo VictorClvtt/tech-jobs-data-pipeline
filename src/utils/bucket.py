@@ -14,7 +14,7 @@ def create_bucket_if_not_exists(bucket_endpoint, access_key, secret_key, bucket_
 
     try:
         s3.head_bucket(Bucket=bucket_name)
-        print(f"[INFO] Bucket '{bucket_name}' already exists.")
+
     except ClientError as e:
         error_code = int(e.response["Error"]["Code"])
         if error_code == 404:

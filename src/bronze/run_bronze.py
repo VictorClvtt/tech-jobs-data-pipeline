@@ -51,7 +51,6 @@ def main():
         secret_key=secret_key,
         bucket_name=bucket_name,
         today_str=today_str,
-        max_pages=None,
         base_url=NERDIN_URL,
         headers=HEADERS
     )

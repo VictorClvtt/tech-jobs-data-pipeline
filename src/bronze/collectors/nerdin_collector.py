@@ -1,4 +1,4 @@
-from src.utils.web_scraping import collect_pages
+from src.utils.web_scraping import collect_page
 from src.utils.bucket import file_to_bucket
 
 def nerdin_collector(
@@ -7,7 +7,6 @@ def nerdin_collector(
     secret_key,
     bucket_name,
     today_str,
-    max_pages,
     base_url,
     headers
 ):
@@ -20,8 +19,7 @@ def nerdin_collector(
         bucket_name=bucket_name,
         path=f"bronze/JSON/nerdin/nerdin-pages-{today_str}.json",
 
-        data=collect_pages(
-            max_pages=max_pages,
+        data=collect_page(
             base_url=base_url,
             headers=headers
         )
