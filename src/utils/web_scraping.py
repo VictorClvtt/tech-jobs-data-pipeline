@@ -1,5 +1,5 @@
 import requests
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 
 def _fetch_page(url: str, headers: dict, page_number: int | None = None) -> Optional[dict]:
@@ -17,7 +17,7 @@ def _fetch_page(url: str, headers: dict, page_number: int | None = None) -> Opti
         "url": response.url,
         "status_code": response.status_code,
         "html": response.text,
-        "scraping_date": datetime.now(timezone.utc).isoformat()
+        "collecting_date": datetime.today().strftime("%Y-%m-%d")
     }
 
 def collect_page(base_url: str, headers: dict) -> Optional[dict]:

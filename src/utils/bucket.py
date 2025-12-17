@@ -50,6 +50,22 @@ def file_to_bucket(bucket_endpoint, access_key, secret_key, bucket_name, path, d
 
     print(f"[INFO] File successfully saved to s3://{bucket_name}/{path}")
 
+def read_file_from_bucket(bucket_endpoint, access_key, secret_key, bucket_name, path):
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=bucket_endpoint,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key
+    )
+
+    try:
+        response = s3.get_object(Bucket=bucket_name, Key=path)
+        body = response["Body"].read()
+        return body
+
+    except ClientError as e:
+        print(f"[ERROR] Failed to read file s3://{bucket_name}/{path}")
+        raise e
 
 def df_to_bucket(df, path: str, partition_by: str = None, mode: str = "append"):
     writer = df.write.mode(mode)
