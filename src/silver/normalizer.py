@@ -43,7 +43,7 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
                         r",", "."
                     ).cast("double")
                 ),
-                F.lit(0.0)
+                F.lit(None)
             )
         )
         .withColumn(
@@ -54,17 +54,16 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
             "city",
             F.when(
                 F.col("location_raw").isNull(),
-                F.lit("Não especificada")
+                None
             )
             .when(
                 F.lower(F.col("location_raw"))
                 .rlike("remoto|remote|home\\s*office|anywhere|100%\\s*remote"),
-                F.lit("Não especificada")
+                None
             )
             .otherwise(
                 F.trim(
                     F.regexp_replace(
-                        # agora corta em (, -, | ou /
                         F.regexp_extract(
                             F.col("location_raw"),
                             r"^([^(\-\|\/]+)",
@@ -79,6 +78,10 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
         .withColumn(
             "modality",
             F.when(
+                F.col("location_raw").isNull(),
+                None
+            )
+            .when(
                 F.lower(F.col("location_raw"))
                 .rlike("remoto|remote|home\\s*office|anywhere|100%\\s*remote"),
                 "remoto"
@@ -93,18 +96,11 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
                 .rlike("presencial|on[-\\s]?site|in[-\\s]?office"),
                 "presencial"
             )
-            .otherwise("presencial")
+            .otherwise(None)
         )
         .withColumn(
             "collecting_date",
             F.to_date("collecting_date_raw")
-        )
-        .withColumn(
-            "employment_type",
-            F.when(
-                F.col("employment_type_raw").isNull(),
-                F.lit("Não especificado")
-            ).otherwise(F.col("employment_type_raw"))
         )
         .withColumn(
             "seniority",
@@ -135,17 +131,10 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
                 .rlike(r"\b(sr|sênior|senior)\b"),
                 "Senior"
             )
-            .otherwise("Não especificado")
-        )
-        .withColumn("tech", F.explode_outer("tech_stack"))
-        .withColumn(
-            "tech",
-            F.when(
-                F.col("tech").isNull(),
-                F.lit("Não especificado")
-            ).otherwise(F.col("tech"))
+            .otherwise(None)
         )
         .withColumnRenamed("company_raw", "company")
+        .withColumnRenamed("employment_type_raw", "employment_type")
         .withColumnRenamed("job_url_raw", "job_url")
         .withColumn(
             "job_id",
@@ -160,9 +149,9 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
                 256
             )
         )
-        .drop("tech_stack_raw", "salary_raw", "title_raw", "location_raw", "collecting_date_raw", "tech_stack", "employment_type_raw", "seniority_raw")
-        .dropna()
-        .drop_duplicates()
+        .drop("tech_stack_raw", "salary_raw", "title_raw", "location_raw", "collecting_date_raw", "employment_type_raw", "seniority_raw")
+        .dropna(subset=["job_id"])
+        .drop_duplicates(subset=["job_id"])
     )
 
     return df
