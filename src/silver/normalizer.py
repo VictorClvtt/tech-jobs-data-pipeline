@@ -28,22 +28,19 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
         )
         .withColumn(
             "salary_rs",
-            F.coalesce(
-                F.when(
-                    F.col("salary_raw").isNotNull() & (F.trim(F.col("salary_raw")) != ""),
+            F.when(
+                F.col("salary_raw").isNotNull() & (F.trim(F.col("salary_raw")) != ""),
+                F.regexp_replace(
                     F.regexp_replace(
-                        F.regexp_replace(
-                            F.regexp_extract(
-                                F.col("salary_raw"),
-                                r"R\$?\s*([\d\.,]+)",
-                                1
-                            ),
-                            r"\.", ""
+                        F.regexp_extract(
+                            F.col("salary_raw"),
+                            r"R\$?\s*([\d\.,]+)",
+                            1
                         ),
-                        r",", "."
-                    ).cast("double")
-                ),
-                F.lit(None)
+                        r"\.", ""
+                    ),
+                    r",", "."
+                ).cast("double")
             )
         )
         .withColumn(
@@ -96,7 +93,7 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
                 .rlike("presencial|on[-\\s]?site|in[-\\s]?office"),
                 "presencial"
             )
-            .otherwise(None)
+            .otherwise(F.lit("presencial"))
         )
         .withColumn(
             "collecting_date",
