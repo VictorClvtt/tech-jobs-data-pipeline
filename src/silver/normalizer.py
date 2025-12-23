@@ -1,8 +1,8 @@
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, DataFrame
 import pyspark.sql.functions as F
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType
 
-def normalizer(raw_jobs: list[dict], spark: SparkSession):
+def normalizer(df: DataFrame) -> DataFrame:
     job_raw_schema = StructType([
         StructField("title_raw", StringType(), True),
         StructField("company_raw", StringType(), True),
@@ -15,8 +15,6 @@ def normalizer(raw_jobs: list[dict], spark: SparkSession):
         StructField("collecting_date_raw", StringType(), True),
         StructField("source", StringType(), True)
     ])
-
-    df = spark.createDataFrame(raw_jobs, schema=job_raw_schema)
 
     df = (
         df.withColumn(

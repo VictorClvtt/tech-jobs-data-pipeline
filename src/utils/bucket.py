@@ -26,8 +26,15 @@ def create_bucket_if_not_exists(bucket_endpoint, access_key, secret_key, bucket_
             raise e
 
 
-def file_to_bucket(bucket_endpoint, access_key, secret_key, bucket_name, path, data):
-
+def file_to_bucket(
+    bucket_endpoint,
+    access_key,
+    secret_key,
+    bucket_name,
+    path,
+    data,
+    format: str = "json"  # "jsonl" | "json"
+):
     create_bucket_if_not_exists(bucket_endpoint, access_key, secret_key, bucket_name)
 
     s3 = boto3.client(
@@ -39,8 +46,24 @@ def file_to_bucket(bucket_endpoint, access_key, secret_key, bucket_name, path, d
 
     if isinstance(data, bytes):
         body = data
+
+    elif format == "jsonl":
+        # JSON Lines (Spark-friendly)
+        if not isinstance(data, list):
+            raise ValueError("format='jsonl' espera uma lista de objetos")
+
+        body = "\n".join(
+            json.dumps(item, ensure_ascii=False)
+            for item in data
+            if item is not None
+        ).encode("utf-8")
+
+    elif format == "json":
+        # JSON tradicional (objeto ou array)
+        body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
+
     else:
-        body = json.dumps(data, indent=2).encode("utf-8")
+        raise ValueError("format deve ser 'jsonl' ou 'json'")
 
     s3.put_object(
         Bucket=bucket_name,
