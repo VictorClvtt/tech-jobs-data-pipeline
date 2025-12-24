@@ -5,7 +5,7 @@ from config.sources import sources
 from src.bronze.run_collector import run_collector
 
 
-def run_bronze(
+def main(
     access_key: str,
     secret_key: str,
     bucket_name: str,
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     access_key, secret_key, bucket_name, bucket_endpoint = load_env_vars()
     today_str = datetime.today().strftime("%Y-%m-%d")
 
-    run_bronze(
+    main(
         access_key=access_key,
         secret_key=secret_key,
         bucket_name=bucket_name,
