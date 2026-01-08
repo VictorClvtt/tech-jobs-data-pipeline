@@ -127,3 +127,30 @@ def save_or_update_table(df_new, path, dedup_cols, format="parquet", mode="overw
     df_final.write.format(format).mode(mode).save(path)
 
     print(f"[INFO] Table successfully saved/updated at: {path}")
+
+def list_files_in_bucket(
+    bucket_endpoint: str,
+    access_key: str,
+    secret_key: str,
+    bucket_name: str,
+    prefix: str
+) -> list[str]:
+    client = boto3.client(
+        "s3",
+        endpoint_url=bucket_endpoint,
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+    )
+
+    paginator = client.get_paginator("list_objects_v2")
+
+    files = []
+
+    for page in paginator.paginate(
+        Bucket=bucket_name,
+        Prefix=prefix
+    ):
+        for obj in page.get("Contents", []):
+            files.append(obj["Key"])
+
+    return files

@@ -3,26 +3,14 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType
 
 def normalizer(df: DataFrame) -> DataFrame:
-    job_raw_schema = StructType([
-        StructField("title_raw", StringType(), True),
-        StructField("company_raw", StringType(), True),
-        StructField("location_raw", StringType(), True),
-        StructField("salary_raw", StringType(), True),
-        StructField("seniority_raw", StringType(), True),
-        StructField("employment_type_raw", StringType(), True),
-        StructField("job_url_raw", StringType(), True),
-        StructField("tech_stack_raw", ArrayType(StringType()), True),
-        StructField("collecting_date_raw", StringType(), True),
-        StructField("source", StringType(), True)
-    ])
-
+    
     df = (
         df.withColumn(
             "tech_stack",
             F.when(
                 F.col("tech_stack_raw").isNull() | (F.size("tech_stack_raw") == 0),
                 F.lit(None)
-            ).otherwise(F.col("tech_stack_raw"))
+            ).otherwise(F.array_distinct(F.col("tech_stack_raw")))
         )
         .withColumn(
             "salary_rs",

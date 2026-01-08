@@ -7,6 +7,9 @@ from src.silver.run_silver_normalizer import run_silver_normalizer
 
 def main(
     spark: SparkSession,
+    bucket_endpoint: str,
+    access_key: str,
+    secret_key: str,
     bucket_name: str,
     today_str: str
 ):
@@ -47,6 +50,9 @@ if __name__ == "__main__":
 
     main(
         spark=spark,
+        bucket_endpoint=bucket_endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
         bucket_name=bucket_name,
         today_str=today_str
     )
