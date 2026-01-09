@@ -38,7 +38,6 @@ def init_connection(persistent: bool, db_path: str):
     else:
         con = duckdb.connect(database=":memory:")
 
-    # extensões
     con.execute("INSTALL httpfs;")
     con.execute("LOAD httpfs;")
     con.execute("INSTALL delta;")
@@ -73,7 +72,6 @@ def load_table(con, table_name, parquet_path):
             [parquet_path]
         ).df()
 
-        # opcional: materializa no catálogo local
         con.register("df_tmp", df)
         con.execute(
             f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM df_tmp"
@@ -83,9 +81,7 @@ def load_table(con, table_name, parquet_path):
         return df
 
     elif DATA_SOURCE == "local":
-        return con.execute(
-            f"SELECT * FROM {table_name}"
-        ).df()
+        return con.execute(f"SELECT * FROM {table_name}").df()
 
     else:
         raise ValueError("DATA_SOURCE inválido")
@@ -108,7 +104,7 @@ gold_tables = {
 }
 
 # ======================================================
-# Load all tables
+# Load tables
 # ======================================================
 @st.cache_data
 def load_all_tables():
@@ -116,9 +112,7 @@ def load_all_tables():
     company = load_table(con, "company", gold_tables["company"])
     city = load_table(con, "city", gold_tables["city"])
     technology = load_table(con, "technology", gold_tables["technology"])
-    job_technology = load_table(
-        con, "job_technology", gold_tables["job_technology"]
-    )
+    job_technology = load_table(con, "job_technology", gold_tables["job_technology"])
 
     return job, company, city, technology, job_technology
 
@@ -151,6 +145,11 @@ df = jobs.merge(tech_stack, on="job_id", how="left")
 df["tech_stack"] = df["tech_stack"].apply(lambda x: x if isinstance(x, list) else [])
 
 # ======================================================
+# Date normalization (IMPORTANTE)
+# ======================================================
+df["collecting_date"] = pd.to_datetime(df["collecting_date"])
+
+# ======================================================
 # Filters UI
 # ======================================================
 st.subheader("🔎 Pesquisa de Vagas")
@@ -178,6 +177,17 @@ with st.sidebar:
     tech_options = sorted({tech for stack in df["tech_stack"] for tech in stack})
     tech_filter = st.multiselect("Tecnologias", tech_options)
 
+    # 🔹 Filtro por data de coleta
+    min_date = df["collecting_date"].min().date()
+    max_date = df["collecting_date"].max().date()
+
+    date_range = st.date_input(
+        "Data de coleta",
+        value=(min_date, max_date),
+        min_value=min_date,
+        max_value=max_date
+    )
+
 # ======================================================
 # Apply filters
 # ======================================================
@@ -204,12 +214,22 @@ if tech_filter:
         )
     ]
 
+if isinstance(date_range, tuple) and len(date_range) == 2:
+    start_date, end_date = date_range
+    filtered = filtered[
+        (filtered["collecting_date"].dt.date >= start_date) &
+        (filtered["collecting_date"].dt.date <= end_date)
+    ]
+
 filtered = filtered.sort_values("collecting_date", ascending=False)
 
 # ======================================================
 # Results
 # ======================================================
 st.markdown(f"## 📄 {len(filtered)} vagas encontradas")
+st.caption(
+    f"Período: {date_range[0].strftime('%d/%m/%Y')} → {date_range[1].strftime('%d/%m/%Y')}"
+)
 st.divider()
 
 for _, row in filtered.iterrows():
@@ -234,7 +254,7 @@ for _, row in filtered.iterrows():
             st.write(f"🧠 **Techs:** {', '.join(row['tech_stack'])}")
 
         st.caption(
-            f"📅 Coletado em {row['collecting_date']} · Fonte: {row['source']}"
+            f"📅 Coletado em {row['collecting_date'].strftime('%d/%m/%Y')} · Fonte: {row['source']}"
         )
 
         st.link_button("🔗 Ver vaga", row["job_url"])
