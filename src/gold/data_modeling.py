@@ -43,15 +43,19 @@ def data_modeling(
             "company_id",
             F.sha2(F.col("company"), 256)
         )
+        .withColumn(
+            "city_id",
+            F.sha2(F.col("city"), 256)
+        )
         .select(
             "job_id",
             "company_id",
+            "city_id",
             "employment_type",
             "job_url",
             "source",
             "salary_rs",
             "title",
-            "city",
             "modality",
             "collecting_date",
             "seniority"
@@ -67,6 +71,18 @@ def data_modeling(
         .withColumn(
             "company_id",
             F.sha2(F.col("company_name"), 256)
+        )
+    )
+
+    city_df = (
+    df
+        .select(
+            F.col("city").alias("city_name")
+        )
+        .distinct()
+        .withColumn(
+            "city_id",
+            F.sha2(F.col("city_name"), 256)
         )
     )
 
@@ -110,6 +126,10 @@ def data_modeling(
 
     company_df.write.mode("overwrite").parquet(
         f"s3a://{bucket_name}/gold/3fn/company/dt={today_str}"
+    )
+
+    city_df.write.mode("overwrite").parquet(
+        f"s3a://{bucket_name}/gold/3fn/city/dt={today_str}"
     )
 
     technology_df.write.mode("overwrite").parquet(
