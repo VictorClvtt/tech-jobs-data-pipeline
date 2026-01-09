@@ -245,7 +245,7 @@ for _, row in filtered.iterrows():
 
         st.write(
             f"🏢 **{row['company_name'] or 'Não informado'}**  "
-            f" — 📍 *{row['city_name'] or 'Não informado'}*  "
+            f" — 📍 *{row['city_name'] or 'Remoto'}*  "
             f" — 💼 {row['employment_type'] or 'Não informado'}  "
             f" — 💰 {salary_text}"
         )
