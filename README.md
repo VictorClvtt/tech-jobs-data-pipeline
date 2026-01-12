@@ -24,6 +24,12 @@ Streamlit**, que permite a navegação pelas vagas coletadas, oferecendo
 recursos como **filtros personalizados**, visualização de informações
 detalhadas e **acesso direto ao link original** de cada vaga.
 
+Diagrama explicando visualmente os componentes e funcionamento do projeto:
+![](./docs/diagrams/project_diagram.png)
+
+Na camada Gold são gravados os dados modelados para poderem ser consumidos pelo App, seguindo a seguinte estrutura:
+![](./docs/diagrams/model_erd_diagram.png)
+
 O app está hospedado no link https://tech-jobs-data-pipeline-lt8l7hzcnhwazy5jztldst.streamlit.app/ e possui um conjunto de dados correspondente à **extração de um único
 dia**, apenas para **demonstração do app**.
 
